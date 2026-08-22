@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Praedora.Api/Praedora.Api.csproj" />
+    <Project Path="src/Praedora.AppHost/Praedora.AppHost.csproj" />
+    <Project Path="src/Praedora.Application/Praedora.Application.csproj" />
+    <Project Path="src/Praedora.Core/Praedora.Core.csproj" />
+    <Project Path="src/Praedora.Infrastructure/Praedora.Infrastructure.csproj" />
+    <Project Path="src/Praedora.ServiceDefaults/Praedora.ServiceDefaults.csproj" />
+    <Project Path="src/Praedora.Web/Praedora.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Praedora.Application.Tests/Praedora.Application.Tests.csproj" />
+    <Project Path="tests/Praedora.Core.Tests/Praedora.Core.Tests.csproj" />
+    <Project Path="tests/Praedora.IntegrationTests/Praedora.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,20 @@
+<div class="card mb-2 shadow-sm">
+    <div class="card-body p-2">
+        <DuplicateWarningBanner IsVisible="Application.HasFlaggedDuplicate" CompanyName="@Application.CompanyName" />
+
+        <a href="@PageRoutes.ApplicationDetailPath(Application.Id)" class="fw-semibold text-decoration-none">
+            @Application.CompanyName
+        </a>
+        <div class="text-body-secondary small">@Application.RoleTitle</div>
+        <div class="text-body-secondary small">@FormatLastActivityAge()</div>
+
+        <select class="form-select form-select-sm mt-2"
+                value="@Application.Status"
+                @onchange="OnStatusSelected">
+            @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+</div>

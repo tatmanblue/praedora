@@ -1,0 +1,96 @@
+@page "/applications/{Id:guid}"
+
+<PageTitle>Praedora — @(application?.CompanyName ?? "Application")</PageTitle>
+
+@if (isLoading)
+{
+    <p class="text-body-secondary">Loading…</p>
+}
+else if (application is null)
+{
+    <p class="text-danger">Application not found.</p>
+}
+else
+{
+    <DuplicateWarningBanner IsVisible="application.HasFlaggedDuplicate" CompanyName="@application.CompanyName" />
+
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h1 class="h4 mb-0">@application.CompanyName</h1>
+            <div class="text-body-secondary">@application.RoleTitle</div>
+        </div>
+        <select class="form-select form-select-sm" style="width: auto;"
+                value="@application.Status" @onchange="OnStatusSelectedAsync">
+            @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><span class="nav-link active">Details</span></li>
+    </ul>
+
+    <div class="row g-3">
+        <div class="col-md-7">
+            <h2 class="h6">Job Description</h2>
+            <pre class="border rounded p-2 bg-body-tertiary" style="white-space: pre-wrap;">@application.JobDescriptionRaw</pre>
+
+            @if (application.JdExtract is not null)
+            {
+                <h2 class="h6 mt-3">Extracted</h2>
+                <ul class="small">
+                    <li>Required skills: @string.Join(", ", application.JdExtract.RequiredSkills)</li>
+                    <li>Nice to have: @string.Join(", ", application.JdExtract.NiceToHave)</li>
+                    <li>Salary: @(application.JdExtract.SalaryRangeText ?? "—")</li>
+                    <li>Location: @(application.JdExtract.Location ?? "—")</li>
+                    <li>Remote policy: @(application.JdExtract.RemotePolicy ?? "—")</li>
+                    <li>Years experience: @(application.JdExtract.YearsExperience?.ToString() ?? "—")</li>
+                </ul>
+            }
+
+            <h2 class="h6 mt-3">Notes</h2>
+            <textarea class="form-control" rows="4" value="@application.Notes" @onchange="OnNotesChanged"></textarea>
+        </div>
+
+        <div class="col-md-5">
+            <h2 class="h6">Timeline</h2>
+            <ul class="list-group list-group-flush small">
+                @foreach (StatusEventDto statusEvent in application.StatusHistory)
+                {
+                    <li class="list-group-item px-0">
+                        <strong>@statusEvent.Status</strong>
+                        <span class="text-body-secondary"> — @statusEvent.OccurredAt.ToLocalTime().ToString("g")</span>
+                        <span class="badge bg-secondary">@statusEvent.Source</span>
+                        @if (!string.IsNullOrWhiteSpace(statusEvent.Note))
+                        {
+                            <div class="text-body-secondary">@statusEvent.Note</div>
+                        }
+                    </li>
+                }
+            </ul>
+
+            <h2 class="h6 mt-3">Contacts</h2>
+            @if (application.Contacts.Count == 0)
+            {
+                <p class="text-body-secondary small">No contacts yet.</p>
+            }
+            else
+            {
+                <ul class="list-group list-group-flush small">
+                    @foreach (ContactDto contact in application.Contacts)
+                    {
+                        <li class="list-group-item px-0">
+                            @contact.Name @(contact.Role is null ? "" : $"({contact.Role})")
+                            @if (contact.Email is not null)
+                            {
+                                <div class="text-body-secondary">@contact.Email</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}
