@@ -1,4 +1,4 @@
-# Praedora
+<img src="docs/branding/praedora_logo.svg" alt="Praedora" width="320" />
 
 *noun, invented Latin, from praedator ("hunter") — stalks the job listings so you don't have to refresh your inbox forty times a day.*
 

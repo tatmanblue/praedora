@@ -5,6 +5,9 @@
   <title>Praedora Capture — Settings</title>
   <style>
     body { width: 360px; font-family: sans-serif; font-size: 13px; padding: 12px; }
+    header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    header img { width: 24px; height: 24px; }
+    header h1 { font-size: 15px; margin: 0; }
     label { display: block; font-weight: bold; }
     input { width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 8px; }
     button { padding: 6px 12px; }
@@ -12,6 +15,10 @@
   </style>
 </head>
 <body>
+  <header>
+    <img src="icons/icon32.png" alt="" />
+    <h1>Praedora Capture — Settings</h1>
+  </header>
   <label for="apiBaseUrl">Praedora API base URL</label>
   <input id="apiBaseUrl" type="text" placeholder="http://localhost:5080" />
   <button id="save">Save</button>
