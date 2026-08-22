@@ -20,16 +20,17 @@ public static class ReviewQueueEndpoints
             return Results.Ok(pending.Select(candidateEvent => candidateEvent.ToDto()));
         });
 
-        group.MapGet("/sync-status", async (IAppSettingRepository appSettingRepository, CancellationToken ct) =>
-        {
-            string? checkedAtRaw = await appSettingRepository.GetAsync(EmailSyncService.LastCheckedAtKey, ct);
-            string? status = await appSettingRepository.GetAsync(EmailSyncService.LastSyncStatusKey, ct);
-            DateTimeOffset? checkedAt = checkedAtRaw is not null && DateTimeOffset.TryParse(checkedAtRaw, out DateTimeOffset parsed)
-                ? parsed
-                : null;
+        group.MapGet("/sync-status",
+            async (IAppSettingRepository appSettingRepository, SyncActivityTracker syncActivityTracker, CancellationToken ct) =>
+            {
+                string? checkedAtRaw = await appSettingRepository.GetAsync(EmailSyncService.LastCheckedAtKey, ct);
+                string? status = await appSettingRepository.GetAsync(EmailSyncService.LastSyncStatusKey, ct);
+                DateTimeOffset? checkedAt = checkedAtRaw is not null && DateTimeOffset.TryParse(checkedAtRaw, out DateTimeOffset parsed)
+                    ? parsed
+                    : null;
 
-            return Results.Ok(new SyncStatusDto(checkedAt, status));
-        });
+                return Results.Ok(new SyncStatusDto(checkedAt, status, syncActivityTracker.IsSyncing));
+            });
 
         group.MapPost("/{id:guid}/confirm", async (Guid id, ReviewQueueService reviewQueueService, CancellationToken ct) =>
         {

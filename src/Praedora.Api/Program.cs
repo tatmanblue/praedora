@@ -2,6 +2,7 @@ using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Praedora.Api.Endpoints;
 using Praedora.Api.Workers;
+using Praedora.Application;
 using Praedora.Application.Services;
 using Praedora.Core.Interfaces;
 using Praedora.Infrastructure.Data;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<ICandidateEventRepository, CandidateEventRepository>(
 builder.Services.AddScoped<IEmailMessageRepository, EmailMessageRepository>();
 builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
 builder.Services.AddScoped<ILogEntryRepository, LogEntryRepository>();
+builder.Services.AddSingleton<SyncActivityTracker>();
 builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<CaptureService>();
 builder.Services.AddScoped<EmailSyncService>();

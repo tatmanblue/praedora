@@ -39,6 +39,7 @@ public partial class ReviewQueuePanel : ComponentBase, IAsyncDisposable
     }
 
     private bool SyncFailed => syncStatus?.Status?.StartsWith("Error", StringComparison.Ordinal) == true;
+    private bool IsSyncing => syncStatus?.IsSyncing == true;
 
     private void StartPolling()
     {

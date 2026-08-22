@@ -3,9 +3,16 @@
 <PageTitle>Praedora — Review Queue</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-1">
-    <h1 class="h4 mb-0">Review Queue</h1>
-    <button class="btn btn-primary btn-sm" disabled="@isSyncing" @onclick="SyncNowAsync">
-        @(isSyncing ? "Syncing…" : "Sync now")
+    <div class="d-flex align-items-center gap-2">
+        <h1 class="h4 mb-0">Review Queue</h1>
+        @if (IsSyncing)
+        {
+            <span class="spinner-border spinner-border-sm text-body-secondary" role="status" aria-hidden="true"></span>
+            <span class="small text-body-secondary">Syncing…</span>
+        }
+    </div>
+    <button class="btn btn-primary btn-sm" disabled="@(isSyncing || IsSyncing)" @onclick="SyncNowAsync">
+        Sync now
     </button>
 </div>
 

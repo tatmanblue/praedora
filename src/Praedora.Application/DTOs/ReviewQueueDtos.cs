@@ -17,7 +17,7 @@ public record CandidateEventDto(
 
 public record EditCandidateEventRequest(ApplicationStatus NewStatus, Guid MatchedApplicationId);
 
-public record SyncStatusDto(DateTimeOffset? LastCheckedAt, string? Status);
+public record SyncStatusDto(DateTimeOffset? LastCheckedAt, string? Status, bool IsSyncing);
 
 public static class CandidateEventDtoMapping
 {

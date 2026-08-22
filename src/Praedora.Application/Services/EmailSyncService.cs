@@ -13,7 +13,8 @@ public class EmailSyncService(
     IAppSettingRepository appSettingRepository,
     ClassificationService classificationService,
     ICandidateEventRepository candidateEventRepository,
-    ILogSink logSink)
+    ILogSink logSink,
+    SyncActivityTracker syncActivityTracker)
 {
     private const string LastSyncedAtKey = "GmailLastSyncedAt";
 
@@ -36,6 +37,19 @@ public class EmailSyncService(
     ];
 
     public async Task SyncAsync(CancellationToken ct)
+    {
+        syncActivityTracker.Start();
+        try
+        {
+            await SyncCoreAsync(ct);
+        }
+        finally
+        {
+            syncActivityTracker.Stop();
+        }
+    }
+
+    private async Task SyncCoreAsync(CancellationToken ct)
     {
         DateTimeOffset since = await GetSinceWatermarkAsync(ct);
 
