@@ -44,6 +44,10 @@ builder.Services.AddDbContext<PraedoraDbContext>(options =>
 });
 
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<ICandidateEventRepository, CandidateEventRepository>();
+builder.Services.AddScoped<IEmailMessageRepository, EmailMessageRepository>();
+builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
+builder.Services.AddScoped<ILogEntryRepository, LogEntryRepository>();
 builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<CaptureService>();
 builder.Services.AddScoped<EmailSyncService>();

@@ -6,8 +6,10 @@ using Praedora.Web.Services;
 
 namespace Praedora.Web.Components.Pages;
 
-public partial class KanbanBoard : ComponentBase
+public partial class KanbanBoard : ComponentBase, IAsyncDisposable
 {
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(7);
+
     [Inject]
     public PraedoraApiClient ApiClient { get; set; } = null!;
 
@@ -16,10 +18,44 @@ public partial class KanbanBoard : ComponentBase
     private bool isSubmitting;
     private bool showCaptureForm;
     private CaptureFormModel captureForm = new();
+    private PeriodicTimer? pollTimer;
+    private CancellationTokenSource? pollCts;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadBoardAsync();
+        StartPolling();
+    }
+
+    private void StartPolling()
+    {
+        pollCts = new CancellationTokenSource();
+        pollTimer = new PeriodicTimer(PollInterval);
+        _ = PollLoopAsync(pollTimer, pollCts.Token);
+    }
+
+    private async Task PollLoopAsync(PeriodicTimer timer, CancellationToken ct)
+    {
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                await LoadBoardAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on dispose.
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        pollCts?.Cancel();
+        pollTimer?.Dispose();
+        pollCts?.Dispose();
+        await Task.CompletedTask;
     }
 
     private async Task LoadBoardAsync()

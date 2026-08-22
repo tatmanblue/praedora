@@ -2,8 +2,66 @@
 
 <PageTitle>Praedora — Logs</PageTitle>
 
-<h1 class="h4">Logs</h1>
-<p class="text-body-secondary">
-    Coming in build sequence step 5 — a filterable, copyable table backed by
-    <code>ILogSink</code> / <code>DatabaseLogSink</code>.
-</p>
+<ConfirmDialog @ref="confirmDialog" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Logs</h1>
+    <button class="btn btn-outline-danger btn-sm" @onclick="ClearAllAsync">Clear all</button>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-auto">
+        <select class="form-select form-select-sm" @bind="severityFilter" @bind:after="LoadAsync">
+            <option value="">All severities</option>
+            <option value="Info">Info</option>
+            <option value="Warning">Warning</option>
+            <option value="Error">Error</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <input class="form-control form-control-sm" placeholder="Component" @bind="componentFilter" @bind:after="LoadAsync" />
+    </div>
+    <div class="col-auto">
+        <input type="datetime-local" class="form-control form-control-sm" @bind="fromFilter" @bind:after="LoadAsync" />
+    </div>
+    <div class="col-auto">
+        <input type="datetime-local" class="form-control form-control-sm" @bind="toFilter" @bind:after="LoadAsync" />
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <p class="text-body-secondary">Loading…</p>
+}
+else if (entries.Count == 0)
+{
+    <p class="text-body-secondary">No log entries match these filters.</p>
+}
+else
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Severity</th>
+                <th>Component</th>
+                <th>Message</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (LogEntryDto entry in entries)
+            {
+                <tr>
+                    <td class="text-nowrap small">@entry.Timestamp.LocalDateTime.ToString("g")</td>
+                    <td>@entry.Severity</td>
+                    <td>@entry.Component</td>
+                    <td>@entry.Message</td>
+                    <td>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => CopyAsTextAsync(entry)">Copy as text</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

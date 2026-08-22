@@ -19,9 +19,10 @@ public class ClaudeJobDescriptionExtractor(IConfiguration configuration) : IJobD
 
     public async Task<JobDescriptionExtract> ExtractAsync(string rawJobDescription, CancellationToken ct)
     {
-        string apiKey = configuration["CLAUDE_API_KEY"]
-            ?? throw new InvalidOperationException("CLAUDE_API_KEY is not set. Copy .env.example to .env and fill it in.");
-        string model = configuration["CLAUDE_MODEL"] ?? "claude-opus-5";
+        string apiKey = configuration["CLAUDE_API_KEY"] is { Length: > 0 } key
+            ? key
+            : throw new InvalidOperationException("CLAUDE_API_KEY is not set. Copy .env.example to .env and fill it in.");
+        string model = configuration["CLAUDE_MODEL"] is { Length: > 0 } configuredModel ? configuredModel : "claude-opus-5";
 
         AnthropicClient client = new() { ApiKey = apiKey };
 
@@ -62,6 +63,7 @@ public class ClaudeJobDescriptionExtractor(IConfiguration configuration) : IJobD
         return new Dictionary<string, JsonElement>
         {
             ["type"] = JsonSerializer.SerializeToElement("object"),
+            ["additionalProperties"] = JsonSerializer.SerializeToElement(false),
             ["properties"] = JsonSerializer.SerializeToElement(new
             {
                 RequiredSkills = new { type = "array", items = new { type = "string" } },

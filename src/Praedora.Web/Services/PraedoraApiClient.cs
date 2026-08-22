@@ -48,4 +48,65 @@ public class PraedoraApiClient(HttpClient httpClient)
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ApplicationDetailDto>(ct))!;
     }
+
+    public async Task<List<CandidateEventDto>> GetPendingReviewQueueAsync(CancellationToken ct)
+    {
+        List<CandidateEventDto>? pending = await httpClient.GetFromJsonAsync<List<CandidateEventDto>>(
+            ApiRoutes.ReviewQueueBase, ct);
+        return pending ?? [];
+    }
+
+    public async Task<SyncStatusDto?> GetSyncStatusAsync(CancellationToken ct)
+    {
+        return await httpClient.GetFromJsonAsync<SyncStatusDto>($"{ApiRoutes.ReviewQueueBase}/sync-status", ct);
+    }
+
+    public async Task ConfirmCandidateEventAsync(Guid id, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.PostAsync($"{ApiRoutes.ReviewQueueBase}/{id}/confirm", null, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DismissCandidateEventAsync(Guid id, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.PostAsync($"{ApiRoutes.ReviewQueueBase}/{id}/dismiss", null, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task EditCandidateEventAsync(Guid id, EditCandidateEventRequest request, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{ApiRoutes.ReviewQueueBase}/{id}/edit", request, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task TriggerSyncAsync(CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.PostAsync($"{ApiRoutes.ReviewQueueBase}/sync", null, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<List<LogEntryDto>> GetLogsAsync(
+        string? severity, string? component, DateTimeOffset? from, DateTimeOffset? to, CancellationToken ct)
+    {
+        Dictionary<string, string?> query = new()
+        {
+            ["severity"] = severity,
+            ["component"] = component,
+            ["from"] = from?.ToString("O"),
+            ["to"] = to?.ToString("O")
+        };
+        string queryString = string.Join('&', query
+            .Where(pair => !string.IsNullOrEmpty(pair.Value))
+            .Select(pair => $"{pair.Key}={Uri.EscapeDataString(pair.Value!)}"));
+
+        List<LogEntryDto>? entries = await httpClient.GetFromJsonAsync<List<LogEntryDto>>(
+            $"{ApiRoutes.LogsBase}?{queryString}", ct);
+        return entries ?? [];
+    }
+
+    public async Task ClearLogsAsync(CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.DeleteAsync(ApiRoutes.LogsBase, ct);
+        response.EnsureSuccessStatusCode();
+    }
 }

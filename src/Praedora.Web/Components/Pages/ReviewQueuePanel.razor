@@ -2,8 +2,96 @@
 
 <PageTitle>Praedora — Review Queue</PageTitle>
 
-<h1 class="h4">Review Queue</h1>
-<p class="text-body-secondary">
-    Coming in build sequence step 4 — Gmail sync and email classification will populate this
-    queue with candidate status changes for you to confirm, edit, or dismiss.
-</p>
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h1 class="h4 mb-0">Review Queue</h1>
+    <button class="btn btn-primary btn-sm" disabled="@isSyncing" @onclick="SyncNowAsync">
+        @(isSyncing ? "Syncing…" : "Sync now")
+    </button>
+</div>
+
+@if (syncStatus?.LastCheckedAt is { } lastCheckedAt)
+{
+    <p class="small mb-3 @(SyncFailed ? "text-danger" : "text-body-secondary")">
+        Last checked @lastCheckedAt.LocalDateTime.ToString("g") — @syncStatus.Status
+    </p>
+}
+else
+{
+    <p class="small mb-3 text-body-secondary">Never synced yet.</p>
+}
+
+@if (isLoading)
+{
+    <p class="text-body-secondary">Loading…</p>
+}
+else if (pending.Count == 0)
+{
+    <p class="text-body-secondary">Nothing pending. Emails detected as job-related will show up here for you to confirm, edit, or dismiss.</p>
+}
+else
+{
+    @foreach (CandidateEventDto candidateEvent in pending)
+    {
+        <div class="card mb-2">
+            <div class="card-body p-2">
+                @if (editingId == candidateEvent.Id)
+                {
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <select class="form-select form-select-sm" @bind="editStatus">
+                                @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <select class="form-select form-select-sm" @bind="editApplicationId">
+                                <option value="">Pick an application…</option>
+                                @foreach (ApplicationSummaryDto application in applications)
+                                {
+                                    <option value="@application.Id">@application.CompanyName — @application.RoleTitle</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" @onclick="() => SaveEditAsync(candidateEvent.Id)">Save</button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="fw-semibold">@candidateEvent.ProposedStatus</span>
+                            <span class="text-body-secondary small"> — confidence @candidateEvent.Confidence.ToString("0.00")</span>
+                            @if (candidateEvent.CompanyConflictFlagged)
+                            {
+                                <span class="badge bg-warning text-dark ms-2">Multiple active matches — pick one</span>
+                            }
+                            else if (candidateEvent.MatchedApplicationId is null)
+                            {
+                                <span class="badge bg-secondary ms-2">Unmatched — pick an application</span>
+                            }
+                            else
+                            {
+                                <span class="text-body-secondary small"> · @CompanyNameFor(candidateEvent.MatchedApplicationId)</span>
+                            }
+                        </div>
+                        <div>
+                            <button class="btn btn-success btn-sm" disabled="@(candidateEvent.MatchedApplicationId is null)"
+                                    @onclick="() => ConfirmAsync(candidateEvent.Id)">Confirm</button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="() => StartEdit(candidateEvent)">Edit</button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DismissAsync(candidateEvent.Id)">Dismiss</button>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(candidateEvent.RawSnippet))
+                    {
+                        <div class="text-body-secondary small fst-italic mt-1">"@candidateEvent.RawSnippet"</div>
+                    }
+                }
+            </div>
+        </div>
+    }
+}

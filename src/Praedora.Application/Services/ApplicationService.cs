@@ -83,4 +83,24 @@ public class ApplicationService(IApplicationRepository repository)
 
         return application;
     }
+
+    // The email-confirmed counterpart to ProgressStatusAsync — used exclusively by
+    // ReviewQueueService when a CandidateEvent is confirmed or edited-and-committed. Still the
+    // only two paths that ever touch Status, per the class comment above.
+    public async Task<JobApplication> ApplyEmailConfirmedStatusAsync(
+        Guid applicationId, ApplicationStatus newStatus, Guid sourceEmailId, double confidence, string? rawSnippet,
+        CancellationToken ct)
+    {
+        JobApplication application = await repository.GetAsync(applicationId, ct)
+            ?? throw new InvalidOperationException($"Application {applicationId} not found.");
+
+        StatusEvent statusEvent = StatusEvent.Create(
+            applicationId, newStatus, DateTimeOffset.UtcNow, EventSource.EmailConfirmed,
+            note: null, sourceEmailId: sourceEmailId, confidence: confidence, rawSnippet: rawSnippet);
+        application.Apply(statusEvent);
+
+        await repository.SaveChangesAsync(ct);
+
+        return application;
+    }
 }

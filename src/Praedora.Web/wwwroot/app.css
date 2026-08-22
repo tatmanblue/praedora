@@ -1,3 +1,16 @@
+:root {
+    --praedora-nav-bg: #1B2733;
+    --praedora-nav-hover-bg: #24323F;
+    --praedora-nav-text: #F2F5F8;
+    --praedora-nav-text-muted: #93A4B4;
+    --praedora-accent: #D9A441;
+    --praedora-warning-bg: #FFF4DD;
+    --praedora-warning-border: #E3C687;
+    --praedora-warning-text: #7A4B06;
+    --praedora-success: #2E9E6C;
+    --praedora-danger: #D64545;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -7,9 +20,15 @@ a, .btn-link {
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: #3D2A05;
+    background-color: var(--praedora-accent);
+    border-color: var(--praedora-accent);
+}
+
+.alert-warning {
+    color: var(--praedora-warning-text);
+    background-color: var(--praedora-warning-bg);
+    border-color: var(--praedora-warning-border);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

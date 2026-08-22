@@ -6,6 +6,8 @@ Praedora is a self-hosted job application tracker that does the one thing every 
 
 You apply. Praedora watches. When something changes, it knows.
 
+**→ [Getting Started](docs/Getting_Started.md)** — how to run it and use what's actually built so far.
+
 ## What it actually does
 
 - **Tracks your pipeline** — a kanban board of every application, from "applied" to "offer" to "well, that's a rejection." Standard stuff, but done right.

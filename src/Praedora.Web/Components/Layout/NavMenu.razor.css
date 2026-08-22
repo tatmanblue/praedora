@@ -60,9 +60,10 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #d7d7d7;
+        color: var(--praedora-nav-text-muted);
         background: none;
         border: none;
+        border-left: 3px solid transparent;
         border-radius: 4px;
         height: 3rem;
         display: flex;
@@ -72,13 +73,14 @@
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    background-color: var(--praedora-nav-hover-bg);
+    border-left-color: var(--praedora-accent);
+    color: var(--praedora-nav-text);
 }
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
+    background-color: var(--praedora-nav-hover-bg);
+    color: var(--praedora-nav-text);
 }
 
 .nav-scrollable {
