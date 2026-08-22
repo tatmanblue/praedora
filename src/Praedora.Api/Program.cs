@@ -60,6 +60,13 @@ builder.Services.AddScoped<ILogSink, DatabaseLogSink>();
 
 builder.Services.AddHostedService<EmailSyncWorker>();
 
+// The Chrome extension calls /api/capture directly from a chrome-extension:// origin. This is
+// the only browser-originated cross-origin call in the system (Blazor Server talks to the API
+// server-to-server), and AllowAnyOrigin matches the existing no-auth, local-trust posture
+// (decision #6) rather than tracking per-install extension IDs.
+builder.Services.AddCors(options => options.AddPolicy(CaptureEndpoints.CorsPolicyName, policy =>
+    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
 WebApplication app = builder.Build();
 
 using (IServiceScope scope = app.Services.CreateScope())
@@ -70,9 +77,14 @@ using (IServiceScope scope = app.Services.CreateScope())
 
 app.MapDefaultEndpoints();
 
+app.UseCors();
+
 app.MapApplicationEndpoints();
 app.MapCaptureEndpoints();
 app.MapReviewQueueEndpoints();
 app.MapLogEndpoints();
 
 app.Run();
+
+// Exposes the top-level Program for Praedora.IntegrationTests' WebApplicationFactory<Program>.
+public partial class Program;

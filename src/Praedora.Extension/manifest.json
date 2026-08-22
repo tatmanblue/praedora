@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Praedora Capture",
+  "version": "0.1.0",
+  "description": "Capture the current job posting into Praedora.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://localhost/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html"
+}

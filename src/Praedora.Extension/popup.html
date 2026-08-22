@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Praedora Capture</title>
+  <style>
+    body { width: 340px; font-family: sans-serif; font-size: 13px; padding: 10px; }
+    label { display: block; margin-top: 8px; font-weight: bold; }
+    input, textarea { width: 100%; box-sizing: border-box; margin-top: 2px; }
+    textarea { height: 120px; resize: vertical; }
+    button { margin-top: 10px; width: 100%; padding: 6px; }
+    #status { margin-top: 8px; min-height: 1em; }
+    .footer-link { margin-top: 8px; text-align: right; }
+    .footer-link a { font-size: 11px; }
+  </style>
+</head>
+<body>
+  <form id="capture-form">
+    <label for="companyName">Company</label>
+    <input id="companyName" type="text" required />
+
+    <label for="roleTitle">Role</label>
+    <input id="roleTitle" type="text" required />
+
+    <label for="sourceUrl">Source URL</label>
+    <input id="sourceUrl" type="text" readonly />
+
+    <label for="jobDescriptionRaw">Job Description</label>
+    <textarea id="jobDescriptionRaw" required></textarea>
+
+    <button type="submit">Capture</button>
+    <div id="status"></div>
+  </form>
+  <div class="footer-link"><a href="options.html" target="_blank">API settings</a></div>
+  <script src="popup.js"></script>
+</body>
+</html>

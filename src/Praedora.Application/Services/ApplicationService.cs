@@ -70,4 +70,17 @@ public class ApplicationService(IApplicationRepository repository)
 
         return application;
     }
+
+    public async Task<JobApplication> AttachJdExtractAsync(
+        Guid applicationId, JobDescriptionExtract jdExtract, CancellationToken ct)
+    {
+        JobApplication application = await repository.GetAsync(applicationId, ct)
+            ?? throw new InvalidOperationException($"Application {applicationId} not found.");
+
+        application.JdExtract = jdExtract;
+
+        await repository.SaveChangesAsync(ct);
+
+        return application;
+    }
 }

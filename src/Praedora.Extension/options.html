@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Praedora Capture — Settings</title>
+  <style>
+    body { width: 360px; font-family: sans-serif; font-size: 13px; padding: 12px; }
+    label { display: block; font-weight: bold; }
+    input { width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 8px; }
+    button { padding: 6px 12px; }
+    #status { margin-top: 8px; min-height: 1em; }
+  </style>
+</head>
+<body>
+  <label for="apiBaseUrl">Praedora API base URL</label>
+  <input id="apiBaseUrl" type="text" placeholder="http://localhost:5080" />
+  <button id="save">Save</button>
+  <div id="status"></div>
+  <script src="options.js"></script>
+</body>
+</html>
