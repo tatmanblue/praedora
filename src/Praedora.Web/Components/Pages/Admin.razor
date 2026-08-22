@@ -1,0 +1,41 @@
+@page "/admin"
+
+<PageTitle>Praedora — Admin</PageTitle>
+
+<h1 class="h4 mb-3">Admin</h1>
+
+@if (isLoading)
+{
+    <p class="text-body-secondary">Loading…</p>
+}
+else
+{
+    <div class="card" style="max-width: 480px;">
+        <div class="card-body">
+            <h2 class="h6">Board view</h2>
+            <p class="text-body-secondary small">Choose how the Board page lays out applications.</p>
+
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="boardViewMode" id="viewKanban"
+                       checked="@(viewMode == BoardViewMode.Kanban)"
+                       @onchange="() => OnViewModeChangedAsync(BoardViewMode.Kanban)" />
+                <label class="form-check-label" for="viewKanban">
+                    <strong>Kanban</strong> — status columns side by side, scrolls horizontally
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="boardViewMode" id="viewStacked"
+                       checked="@(viewMode == BoardViewMode.Stacked)"
+                       @onchange="() => OnViewModeChangedAsync(BoardViewMode.Stacked)" />
+                <label class="form-check-label" for="viewStacked">
+                    <strong>Stacked</strong> — one card per status, stacked top to bottom, scrolls vertically
+                </label>
+            </div>
+
+            @if (showSaved)
+            {
+                <p class="text-success small mt-2 mb-0">Saved.</p>
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,35 @@
+@foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
+{
+    bool isExpanded = IsExpanded(status);
+
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center user-select-none"
+             style="cursor: pointer;" @onclick="() => Toggle(status)">
+            <span class="fw-semibold">
+                <span class="me-2">@(isExpanded ? "▾" : "▸")</span>@status
+            </span>
+            <span class="badge bg-secondary">@CountFor(status)</span>
+        </div>
+        @if (isExpanded)
+        {
+            <div class="card-body">
+                @if (CountFor(status) == 0)
+                {
+                    <p class="text-body-secondary small mb-0">Nothing here.</p>
+                }
+                else
+                {
+                    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-2">
+                        @foreach (ApplicationSummaryDto application in ApplicationsFor(status))
+                        {
+                            <div class="col">
+                                <ApplicationCard Application="application"
+                                                  StatusChanged="newStatus => OnStatusChanged.InvokeAsync((application.Id, newStatus))" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

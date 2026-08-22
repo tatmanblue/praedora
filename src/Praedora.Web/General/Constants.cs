@@ -5,6 +5,7 @@ public static class PageRoutes
 {
     public const string Board = "/";
     public const string ApplicationDetail = "/applications/{Id:guid}";
+    public const string Admin = "/admin";
 
     public static string ApplicationDetailPath(Guid id)
     {

@@ -14,6 +14,7 @@ public partial class KanbanBoard : ComponentBase, IAsyncDisposable
     public PraedoraApiClient ApiClient { get; set; } = null!;
 
     private List<ApplicationSummaryDto> applications = [];
+    private BoardViewMode viewMode = BoardViewMode.Kanban;
     private bool isLoading = true;
     private bool isSubmitting;
     private bool showCaptureForm;
@@ -23,6 +24,7 @@ public partial class KanbanBoard : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        viewMode = await ApiClient.GetBoardViewModeAsync(CancellationToken.None);
         await LoadBoardAsync();
         StartPolling();
     }
@@ -65,16 +67,6 @@ public partial class KanbanBoard : ComponentBase, IAsyncDisposable
         isLoading = false;
     }
 
-    private IEnumerable<ApplicationSummaryDto> ApplicationsFor(ApplicationStatus status)
-    {
-        return applications.Where(application => application.Status == status);
-    }
-
-    private int ColumnCount(ApplicationStatus status)
-    {
-        return ApplicationsFor(status).Count();
-    }
-
     private void ToggleCaptureForm()
     {
         showCaptureForm = !showCaptureForm;
@@ -96,9 +88,9 @@ public partial class KanbanBoard : ComponentBase, IAsyncDisposable
         await LoadBoardAsync();
     }
 
-    private async Task OnCardStatusChangedAsync(Guid applicationId, ApplicationStatus newStatus)
+    private async Task OnCardStatusChangedAsync((Guid ApplicationId, ApplicationStatus NewStatus) change)
     {
-        await ApiClient.ProgressStatusAsync(applicationId, new ProgressStatusRequest(newStatus, null), CancellationToken.None);
+        await ApiClient.ProgressStatusAsync(change.ApplicationId, new ProgressStatusRequest(change.NewStatus, null), CancellationToken.None);
         await LoadBoardAsync();
     }
 

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Praedora.Application;
 using Praedora.Application.DTOs;
+using Praedora.Core.Enums;
 
 namespace Praedora.Web.Services;
 
@@ -107,6 +108,20 @@ public class PraedoraApiClient(HttpClient httpClient)
     public async Task ClearLogsAsync(CancellationToken ct)
     {
         HttpResponseMessage response = await httpClient.DeleteAsync(ApiRoutes.LogsBase, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<BoardViewMode> GetBoardViewModeAsync(CancellationToken ct)
+    {
+        BoardViewModeDto? dto = await httpClient.GetFromJsonAsync<BoardViewModeDto>(
+            $"{ApiRoutes.SettingsBase}/board-view-mode", ct);
+        return dto?.Mode ?? BoardViewMode.Kanban;
+    }
+
+    public async Task SetBoardViewModeAsync(BoardViewMode mode, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.PutAsJsonAsync(
+            $"{ApiRoutes.SettingsBase}/board-view-mode", new BoardViewModeDto(mode), ct);
         response.EnsureSuccessStatusCode();
     }
 }

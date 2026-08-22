@@ -41,19 +41,11 @@
 {
     <p class="text-body-secondary">Loading…</p>
 }
+else if (viewMode == BoardViewMode.Stacked)
+{
+    <StackedStatusView Applications="applications" OnStatusChanged="OnCardStatusChangedAsync" />
+}
 else
 {
-    <div class="d-flex gap-2 overflow-auto pb-3">
-        @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
-        {
-            <div class="flex-shrink-0" style="width: 260px;">
-                <h2 class="h6 text-body-secondary">@status (@ColumnCount(status))</h2>
-                @foreach (ApplicationSummaryDto application in ApplicationsFor(status))
-                {
-                    <ApplicationCard Application="application"
-                                      StatusChanged="newStatus => OnCardStatusChangedAsync(application.Id, newStatus)" />
-                }
-            </div>
-        }
-    </div>
+    <KanbanColumnsView Applications="applications" OnStatusChanged="OnCardStatusChangedAsync" />
 }

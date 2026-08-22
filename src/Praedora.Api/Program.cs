@@ -89,6 +89,7 @@ app.MapApplicationEndpoints();
 app.MapCaptureEndpoints();
 app.MapReviewQueueEndpoints();
 app.MapLogEndpoints();
+app.MapSettingsEndpoints();
 
 app.Run();
 

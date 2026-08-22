@@ -9,4 +9,5 @@ public static class ApiRoutes
     public const string CaptureBase = "/api/capture";
     public const string ReviewQueueBase = "/api/review-queue";
     public const string LogsBase = "/api/logs";
+    public const string SettingsBase = "/api/settings";
 }
