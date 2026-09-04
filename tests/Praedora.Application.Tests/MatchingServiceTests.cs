@@ -90,9 +90,37 @@ public class MatchingServiceTests
             return Task.FromResult(activeByCompany);
         }
 
+        public Task<List<JobApplication>> GetAllWithDetailsAsync(CancellationToken ct)
+        {
+            return Task.FromResult(activeByCompany);
+        }
+
+        public Task<List<Guid>> GetIdsByStatusAsync(ApplicationStatus[]? statuses, CancellationToken ct)
+        {
+            IEnumerable<JobApplication> query = activeByCompany;
+            if (statuses is not null)
+            {
+                query = query.Where(application => statuses.Contains(application.Status));
+            }
+
+            return Task.FromResult(query.Select(application => application.Id).ToList());
+        }
+
         public Task AddAsync(JobApplication application, CancellationToken ct)
         {
             activeByCompany.Add(application);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(Guid id, CancellationToken ct)
+        {
+            activeByCompany.RemoveAll(application => application.Id == id);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteRangeAsync(IEnumerable<Guid> ids, CancellationToken ct)
+        {
+            activeByCompany.RemoveAll(application => ids.Contains(application.Id));
             return Task.CompletedTask;
         }
 

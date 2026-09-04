@@ -50,6 +50,28 @@ public class PraedoraApiClient(HttpClient httpClient)
         return (await response.Content.ReadFromJsonAsync<ApplicationDetailDto>(ct))!;
     }
 
+    public async Task DeleteApplicationAsync(Guid id, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.DeleteAsync($"{ApiRoutes.ApplicationsBase}/{id}", ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<int> DeleteApplicationsAsync(string scope, CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.DeleteAsync(
+            $"{ApiRoutes.ApplicationsBase}?scope={Uri.EscapeDataString(scope)}", ct);
+        response.EnsureSuccessStatusCode();
+        DeleteResultDto? result = await response.Content.ReadFromJsonAsync<DeleteResultDto>(ct);
+        return result?.DeletedCount ?? 0;
+    }
+
+    public async Task<byte[]> ExportApplicationsAsync(CancellationToken ct)
+    {
+        HttpResponseMessage response = await httpClient.GetAsync($"{ApiRoutes.ApplicationsBase}/export", ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync(ct);
+    }
+
     public async Task<List<CandidateEventDto>> GetPendingReviewQueueAsync(CancellationToken ct)
     {
         List<CandidateEventDto>? pending = await httpClient.GetFromJsonAsync<List<CandidateEventDto>>(

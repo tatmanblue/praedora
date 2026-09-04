@@ -8,8 +8,13 @@ namespace Praedora.Application.Services;
 // Manual capture, board listing, and manual status progression. Every status change here goes
 // through Application.Apply with EventSource.Manual — this is the only path that touches
 // Status besides a confirmed CandidateEvent (see ReviewQueueService, step 4).
-public class ApplicationService(IApplicationRepository repository)
+public class ApplicationService(IApplicationRepository repository, ICandidateEventRepository candidateEventRepository)
 {
+    private static readonly ApplicationStatus[] TerminalStatuses =
+    [
+        ApplicationStatus.Rejected, ApplicationStatus.Withdrawn, ApplicationStatus.Closed
+    ];
+
     public async Task<JobApplication> CaptureAsync(
         string companyName,
         string roleTitle,
@@ -102,5 +107,34 @@ public class ApplicationService(IApplicationRepository repository)
         await repository.SaveChangesAsync(ct);
 
         return application;
+    }
+
+    public async Task DeleteAsync(Guid applicationId, CancellationToken ct)
+    {
+        await repository.DeleteAsync(applicationId, ct);
+        await candidateEventRepository.ClearMatchedApplicationForPendingAsync([applicationId], ct);
+        await repository.SaveChangesAsync(ct);
+    }
+
+    // scope: only closed/terminal applications (Rejected, Withdrawn, Closed), or every application
+    // when onlyClosed is false. Returns the number of applications deleted.
+    public async Task<int> DeleteByStatusAsync(bool onlyClosed, CancellationToken ct)
+    {
+        List<Guid> ids = await repository.GetIdsByStatusAsync(onlyClosed ? TerminalStatuses : null, ct);
+        if (ids.Count == 0)
+        {
+            return 0;
+        }
+
+        await repository.DeleteRangeAsync(ids, ct);
+        await candidateEventRepository.ClearMatchedApplicationForPendingAsync(ids, ct);
+        await repository.SaveChangesAsync(ct);
+
+        return ids.Count;
+    }
+
+    public Task<List<JobApplication>> ExportAllAsync(CancellationToken ct)
+    {
+        return repository.GetAllWithDetailsAsync(ct);
     }
 }

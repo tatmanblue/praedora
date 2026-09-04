@@ -55,6 +55,8 @@ public record ProgressStatusRequest(ApplicationStatus Status, string? Note);
 
 public record UpdateNotesRequest(string? Notes);
 
+public record DeleteResultDto(int DeletedCount);
+
 public static class ApplicationDtoMapping
 {
     public static ApplicationSummaryDto ToSummaryDto(this Core.Entities.Application application)

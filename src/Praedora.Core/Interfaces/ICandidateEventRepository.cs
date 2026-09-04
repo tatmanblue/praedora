@@ -7,5 +7,6 @@ public interface ICandidateEventRepository
     Task<CandidateEvent?> GetAsync(Guid id, CancellationToken ct);
     Task<List<CandidateEvent>> GetPendingAsync(CancellationToken ct);
     Task AddAsync(CandidateEvent candidateEvent, CancellationToken ct);
+    Task ClearMatchedApplicationForPendingAsync(IReadOnlyCollection<Guid> applicationIds, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

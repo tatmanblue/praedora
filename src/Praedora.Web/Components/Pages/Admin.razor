@@ -2,6 +2,8 @@
 
 <PageTitle>Praedora — Admin</PageTitle>
 
+<ConfirmDialog @ref="confirmDialog" />
+
 <h1 class="h4 mb-3">Admin</h1>
 
 @if (isLoading)
@@ -10,7 +12,7 @@
 }
 else
 {
-    <div class="card" style="max-width: 480px;">
+    <div class="card mb-3" style="max-width: 480px;">
         <div class="card-body">
             <h2 class="h6">Board view</h2>
             <p class="text-body-secondary small">Choose how the Board page lays out applications.</p>
@@ -35,6 +37,38 @@ else
             @if (showSaved)
             {
                 <p class="text-success small mt-2 mb-0">Saved.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card" style="max-width: 480px;">
+        <div class="card-body">
+            <h2 class="h6">Data management</h2>
+            <p class="text-body-secondary small">
+                @totalCount application(s) total, @closedCount closed (Rejected, Withdrawn, Closed).
+            </p>
+
+            <a class="btn btn-outline-secondary btn-sm" href="/export/applications">Export all applications (JSON)</a>
+
+            <hr />
+
+            <button class="btn btn-outline-danger btn-sm" disabled="@(closedCount == 0)" @onclick="DeleteClosedAsync">
+                Delete closed applications
+            </button>
+
+            <div class="border border-danger rounded p-2 mt-3">
+                <h3 class="h6 text-danger">Danger zone</h3>
+                <p class="text-body-secondary small mb-2">
+                    Deletes every application, including ones still in progress. Export a backup first.
+                </p>
+                <button class="btn btn-danger btn-sm" disabled="@(totalCount == 0)" @onclick="DeleteAllAsync">
+                    Delete ALL applications
+                </button>
+            </div>
+
+            @if (deleteMessage is not null)
+            {
+                <p class="text-success small mt-2 mb-0">@deleteMessage</p>
             }
         </div>
     </div>

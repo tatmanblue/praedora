@@ -62,4 +62,9 @@ public class CandidateEvent
         MatchedApplicationId = matchedApplicationId;
         Status = CandidateStatus.Edited;
     }
+
+    public void ClearMatchedApplication()
+    {
+        MatchedApplicationId = null;
+    }
 }

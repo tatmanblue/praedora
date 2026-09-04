@@ -20,7 +20,8 @@ public class ReviewQueueServiceTests
 
         FakeApplicationRepository applicationRepository = new([application]);
         FakeCandidateEventRepository candidateEventRepository = new([candidateEvent]);
-        ReviewQueueService reviewQueueService = new(candidateEventRepository, new ApplicationService(applicationRepository));
+        ReviewQueueService reviewQueueService = new(
+            candidateEventRepository, new ApplicationService(applicationRepository, candidateEventRepository));
 
         await reviewQueueService.ConfirmAsync(candidateEvent.Id, CancellationToken.None);
 
@@ -37,7 +38,8 @@ public class ReviewQueueServiceTests
 
         FakeApplicationRepository applicationRepository = new([]);
         FakeCandidateEventRepository candidateEventRepository = new([candidateEvent]);
-        ReviewQueueService reviewQueueService = new(candidateEventRepository, new ApplicationService(applicationRepository));
+        ReviewQueueService reviewQueueService = new(
+            candidateEventRepository, new ApplicationService(applicationRepository, candidateEventRepository));
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => reviewQueueService.ConfirmAsync(candidateEvent.Id, CancellationToken.None));
@@ -53,7 +55,8 @@ public class ReviewQueueServiceTests
 
         FakeApplicationRepository applicationRepository = new([application]);
         FakeCandidateEventRepository candidateEventRepository = new([candidateEvent]);
-        ReviewQueueService reviewQueueService = new(candidateEventRepository, new ApplicationService(applicationRepository));
+        ReviewQueueService reviewQueueService = new(
+            candidateEventRepository, new ApplicationService(applicationRepository, candidateEventRepository));
 
         await reviewQueueService.DismissAsync(candidateEvent.Id, CancellationToken.None);
 
@@ -75,7 +78,8 @@ public class ReviewQueueServiceTests
 
         FakeApplicationRepository applicationRepository = new([wrongApplication, correctApplication]);
         FakeCandidateEventRepository candidateEventRepository = new([candidateEvent]);
-        ReviewQueueService reviewQueueService = new(candidateEventRepository, new ApplicationService(applicationRepository));
+        ReviewQueueService reviewQueueService = new(
+            candidateEventRepository, new ApplicationService(applicationRepository, candidateEventRepository));
 
         await reviewQueueService.EditAsync(
             candidateEvent.Id, ApplicationStatus.RecruiterScreen, correctApplication.Id, CancellationToken.None);
@@ -103,9 +107,37 @@ public class ReviewQueueServiceTests
             return Task.FromResult(applications);
         }
 
+        public Task<List<JobApplication>> GetAllWithDetailsAsync(CancellationToken ct)
+        {
+            return Task.FromResult(applications);
+        }
+
+        public Task<List<Guid>> GetIdsByStatusAsync(ApplicationStatus[]? statuses, CancellationToken ct)
+        {
+            IEnumerable<JobApplication> query = applications;
+            if (statuses is not null)
+            {
+                query = query.Where(application => statuses.Contains(application.Status));
+            }
+
+            return Task.FromResult(query.Select(application => application.Id).ToList());
+        }
+
         public Task AddAsync(JobApplication application, CancellationToken ct)
         {
             applications.Add(application);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(Guid id, CancellationToken ct)
+        {
+            applications.RemoveAll(application => application.Id == id);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteRangeAsync(IEnumerable<Guid> ids, CancellationToken ct)
+        {
+            applications.RemoveAll(application => ids.Contains(application.Id));
             return Task.CompletedTask;
         }
 
@@ -130,6 +162,21 @@ public class ReviewQueueServiceTests
         public Task AddAsync(CandidateEvent candidateEvent, CancellationToken ct)
         {
             candidateEvents.Add(candidateEvent);
+            return Task.CompletedTask;
+        }
+
+        public Task ClearMatchedApplicationForPendingAsync(IReadOnlyCollection<Guid> applicationIds, CancellationToken ct)
+        {
+            foreach (CandidateEvent candidateEvent in candidateEvents)
+            {
+                if (candidateEvent.Status == CandidateStatus.Pending
+                    && candidateEvent.MatchedApplicationId is { } matchedId
+                    && applicationIds.Contains(matchedId))
+                {
+                    candidateEvent.ClearMatchedApplication();
+                }
+            }
+
             return Task.CompletedTask;
         }
 

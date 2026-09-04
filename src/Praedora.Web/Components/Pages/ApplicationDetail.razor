@@ -12,6 +12,8 @@ else if (application is null)
 }
 else
 {
+    <ConfirmDialog @ref="confirmDialog" />
+
     <DuplicateWarningBanner IsVisible="application.HasFlaggedDuplicate" CompanyName="@application.CompanyName" />
 
     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -19,13 +21,16 @@ else
             <h1 class="h4 mb-0">@application.CompanyName</h1>
             <div class="text-body-secondary">@application.RoleTitle</div>
         </div>
-        <select class="form-select form-select-sm" style="width: auto;"
-                value="@application.Status" @onchange="OnStatusSelectedAsync">
-            @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
-            {
-                <option value="@status">@status</option>
-            }
-        </select>
+        <div class="d-flex align-items-center gap-2">
+            <select class="form-select form-select-sm" style="width: auto;"
+                    value="@application.Status" @onchange="OnStatusSelectedAsync">
+                @foreach (ApplicationStatus status in Enum.GetValues<ApplicationStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </select>
+            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteAsync">Delete</button>
+        </div>
     </div>
 
     <ul class="nav nav-tabs mb-3">
@@ -34,6 +39,11 @@ else
 
     <div class="row g-3">
         <div class="col-md-7">
+            @if (!string.IsNullOrWhiteSpace(application.SourceUrl))
+            {
+                <div class="small mb-2"><a href="@application.SourceUrl" target="_blank" rel="noopener">View original posting ↗</a></div>
+            }
+
             <h2 class="h6">Job Description</h2>
             <pre class="border rounded p-2 bg-body-tertiary" style="white-space: pre-wrap;">@application.JobDescriptionRaw</pre>
 
