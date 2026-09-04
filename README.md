@@ -6,7 +6,22 @@ Praedora is a self-hosted job application tracker that does the one thing every 
 
 You apply. Praedora watches. When something changes, it knows.
 
-**→ [Getting Started](docs/Getting_Started.md)** — how to run it and use what's actually built so far.
+## Getting started
+
+```
+git clone <this repo>
+cd praedora
+cp .env.example .env   # fill in at least PRAEDORA_DB_CONNECTION
+cd src/Praedora.AppHost
+dotnet run
+```
+
+That starts the API, the web UI, and the Aspire dashboard together. From there:
+
+- **[Getting Started](docs/Getting_Started.md)** — prerequisites, full `.env` reference, building,
+  running, testing, and loading the Chrome extension.
+- **[User Guide](docs/User_Guide.md)** — how the app actually works, page by page, with
+  screenshots: the Board, capturing a job, the Review Queue, Application Details, and Admin.
 
 ## What it actually does
 
@@ -25,15 +40,15 @@ Every mainstream job tracker (Teal, Huntr, Simplify, etc.) is great at manual tr
 
 | Layer | Choice | Why |
 |---|---|---|
-| API / background processing | ASP.NET Core (minimal APIs) | Fast, familiar, plays nicely with everything below it |
+| API | ASP.NET Core (minimal APIs) | Fast, familiar, plays nicely with everything below it |
 | Frontend | Blazor Server | Live UI updates without hand-rolling a JS framework |
-| Real-time updates | SignalR | Pushes status changes to the board the moment they're detected |
-| Persistence | EF Core + SQLite/Postgres | Boring and reliable, which is exactly what you want from a database |
+| Live updates | Client-side polling today; SignalR hub scaffolded (planned) | The Board and Review Queue poll the API every few seconds — good enough for a single-user tool; a SignalR push path exists in skeleton form for later |
+| Persistence | EF Core + SQLite | Boring and reliable, which is exactly what you want from a database — Postgres/SQL Server aren't implemented yet |
 | Email ingestion | Gmail API (OAuth, on-demand + timer polling) | One provider done well beats two done half-heartedly |
-| Email classification | Claude (Haiku-class model) | Structured JSON output, cheap enough to run on every inbound email |
-| Job description extraction | Claude Opus 5 (structured output) | Turns a raw posting into skills/salary/location/remote-policy fields, one call per capture |
-| Background queue | `System.Threading.Channels` | In-process, no broker needed for a single-user tool |
-| Optional desktop shell | .NET MAUI Blazor Hybrid | Reuses the same Razor components, adds a tray icon and native OS notifications |
+| Email classification | Claude (`claude-opus-5` by default, overridable) | Structured JSON output — decides whether an email is job-related and what it means |
+| Job description extraction | Claude (`claude-opus-5` by default, overridable) | Turns a raw posting into skills/salary/location/remote-policy fields, one call per capture |
+| Background processing | ASP.NET Core `BackgroundService` (timer-based) | Sequential per-sync processing, no broker or queue needed for a single-user tool |
+| Optional desktop shell (planned) | .NET MAUI Blazor Hybrid | Would reuse the same Razor components, adding a tray icon and native OS notifications — not built yet |
 
 Single language, single ecosystem, top to bottom: C#/.NET. No context-switching required to work on any layer of this thing.
 
@@ -43,4 +58,4 @@ Actively hunting. 🎯
 
 ## File Version
 
-2026.08.22
+2026.09.04

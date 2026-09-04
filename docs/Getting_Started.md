@@ -1,82 +1,120 @@
 # Getting Started
 
-What you can actually do with Praedora today, and how to do it. This reflects build sequence
-steps 1–3 in `Praedora_Consolidated_Technical_Design.md` §12 — see the **Not implemented yet**
-section at the bottom for what's still stubbed.
+How to get Praedora's source, configure it, and run it locally. For a tour of what the app
+actually does once it's running, see the **[User Guide](User_Guide.md)**.
 
-## 1. First-time setup
+## 1. Prerequisites
 
-Copy `.env.example` to `.env` in the repo root and fill in what you need:
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- The [Aspire CLI](https://learn.microsoft.com/dotnet/aspire/fundamentals/setup-tooling) (`aspire`
+  on your PATH) — the AppHost project uses it to orchestrate the API and Web projects together
+- A Google Cloud project with the Gmail API enabled and an OAuth client, if you want Gmail sync
+  (optional — see §2)
+- An [Anthropic API key](https://console.anthropic.com/), if you want job-description extraction
+  and email classification (optional — see §2)
+
+## 2. Clone and configure
+
+```
+git clone <this repo>
+cd praedora
+cp .env.example .env
+```
+
+Edit `.env`. `PRAEDORA_DB_PROVIDER` and `PRAEDORA_DB_CONNECTION` are the only two required
+values — the app throws on startup without a connection string:
 
 ```
 PRAEDORA_DB_PROVIDER=Sqlite
 PRAEDORA_DB_CONNECTION=Data Source=praedora.db
 ```
 
-These two are required — the app throws on startup without `PRAEDORA_DB_CONNECTION`. Everything
-else in `.env.example` is optional for now:
+Only `Sqlite` is supported today; Postgres/SQL Server aren't wired up yet.
 
-- `CLAUDE_API_KEY` / `CLAUDE_MODEL` — only needed if you want job-description extraction (§3
-  below). Leave blank and captures still work, just without the extracted skills/salary/location
-  fields.
-- `GMAIL_OAUTH_CLIENT_ID` / `GMAIL_OAUTH_CLIENT_SECRET` — not read by anything yet (see **Not
-  implemented yet**). No point setting these today.
-- `PRAEDORA_LISTEN_PORT` — also not read by anything. Ignore it; see §2 for how the actual port
-  is determined.
+Everything else is optional, and the app degrades gracefully without it:
 
-## 2. Running the app
+| Variable | Needed for | Behavior if unset |
+|---|---|---|
+| `GMAIL_OAUTH_CLIENT_ID` / `GMAIL_OAUTH_CLIENT_SECRET` | Reading your inbox for status changes (§4 of the User Guide) | The background sync and "Sync now" both fail with a clear error on the Review Queue page and in the logs. Manual tracking and captures still work fully. |
+| `CLAUDE_API_KEY` | Job-description extraction (skills/salary/location) on capture, and email classification for Gmail sync | Captures still succeed; the "Extracted" section on an application's Details tab is just left empty, and Gmail sync can't classify anything even if it's otherwise configured. |
+| `CLAUDE_MODEL` | Overriding the extraction model | Defaults to `claude-opus-5`. |
 
-Run the `Praedora.AppHost` project (this is the supported way — see the root `CLAUDE.md`). It
-starts both `Praedora.Api` and `Praedora.Web` and opens the Aspire dashboard.
+**Never commit `.env`** — it's gitignored, and it holds real credentials.
 
-**The API's actual URL is whatever the Aspire dashboard shows for the `praedora-api` resource** —
-check its console/endpoint there rather than assuming a fixed port. If you instead run
-`Praedora.Api` directly with `dotnet run` (bypassing AppHost), it uses `launchSettings.json`:
-`http://localhost:5136` (`https://localhost:7111` for https). `Praedora.Web` similarly defaults
-to `http://localhost:5106` / `https://localhost:7064` when run standalone.
+### Setting up Gmail OAuth (optional)
 
-## 3. Manual tracking (works today)
+1. In [Google Cloud Console](https://console.cloud.google.com/), create a project (or reuse one),
+   enable the **Gmail API**, and create an **OAuth 2.0 Client ID** of type "Desktop app."
+2. Copy the client ID and secret into `.env`.
+3. The first time anything triggers a sync (the background timer or the "Sync now" button),
+   `GmailEmailProvider` opens your default browser for the Google consent screen. Approve it once
+   — the resulting token is cached in the database (`AppSettings` table) and reused silently after
+   that.
 
-Open `Praedora.Web` in a browser — the Kanban board is the home page. **+ New Application** opens
-a form (company, role, source URL, job description) that creates the application directly via
-`POST /api/applications`. This path does **not** run job-description extraction — that's specific
-to the Chrome extension's capture path (§4/§5). Drag-free status changes happen by picking a new
-status on a card; every change is recorded in that application's `StatusHistory`.
+## 3. Build
 
-## 4. Chrome extension — one-click capture
+```
+dotnet build Praedora.slnx
+```
+
+## 4. Run
+
+Run the `Praedora.AppHost` project — this is the supported way to run Praedora, and starts both
+`Praedora.Api` and `Praedora.Web` together along with the Aspire dashboard:
+
+```
+cd src/Praedora.AppHost
+dotnet run
+```
+
+The dashboard prints a URL (typically `https://localhost:17xxx`) — open it to see both resources
+and their actual assigned ports, since Aspire allocates them dynamically per run rather than using
+fixed ports. Click through to `praedora-web`'s endpoint to open the app itself.
+
+If you instead run `Praedora.Api` or `Praedora.Web` directly with `dotnet run` (bypassing
+AppHost), each falls back to the fixed ports in its own `Properties/launchSettings.json`
+(`Praedora.Api`: `https://localhost:7111`; `Praedora.Web`: `https://localhost:7064`) — but you'll
+need to run both yourself, and `Praedora.Web`'s calls to the API won't resolve without Aspire's
+service discovery unless you also adjust its configuration.
+
+On first run, the API applies EF Core migrations automatically and creates `praedora.db` next to
+wherever it's running from.
+
+## 5. Run the tests
+
+```
+dotnet test Praedora.slnx
+```
+
+This covers `Praedora.Core.Tests`, `Praedora.Application.Tests` (service-layer logic against
+in-memory fakes), and `Praedora.IntegrationTests` (the capture endpoint against a real, temporary
+database).
+
+## 6. Load the Chrome extension (optional)
 
 The extension lives in `src/Praedora.Extension` and isn't published anywhere — load it unpacked:
 
 1. `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select
    `src/Praedora.Extension`.
-2. Right-click the extension's icon → **Options** (or use the "API settings" link at the bottom
-   of the popup) and set the API base URL to whatever you found in §2 — the packaged default
-   (`http://localhost:5080`) doesn't match either real scenario described above, so you'll need to
-   set this once per environment.
-3. Navigate to a job posting and click the extension icon. It looks for a `schema.org/JobPosting`
-   JSON-LD block on the page first (present on most boards — LinkedIn, Indeed, Greenhouse, Lever)
-   and falls back to the page title/text if there isn't one. Review/edit the pre-filled fields,
-   then **Capture**.
-4. This posts to `POST /api/capture`, which creates the application (status `Captured`) and — if
-   `CLAUDE_API_KEY` is set — attaches the extracted job-description fields in the same request.
+2. Right-click the extension's icon → **Options** (or use the "API settings" link at the bottom of
+   the popup) and set the API base URL to wherever `Praedora.Api` is actually reachable (see §4) —
+   the packaged default doesn't match either run mode above, so you'll need to set this once per
+   environment.
 
-## 5. Job description extraction
+See the **[User Guide](User_Guide.md#capturing-a-job)** for how to use it day to day.
 
-Only the extension's capture path (§4) runs extraction; it's best-effort — if `CLAUDE_API_KEY` is
-missing or the Claude call fails for any reason, the capture still succeeds and `JdExtract` is
-just left empty (check the API's Serilog file output in `logs/` for the warning). When it does
-run, it uses `claude-opus-5` by default (override with `CLAUDE_MODEL`) and returns structured
-fields: required skills, nice-to-have skills, salary range, location, remote policy, and years of
-experience.
+## Known limitations
 
-## Not implemented yet
+- **Sqlite only** — Postgres/SQL Server support isn't implemented yet, despite being read from
+  `PRAEDORA_DB_PROVIDER`; any other value throws on startup.
+- **Contacts** are modeled in the database and shown on an application's Details tab, but nothing
+  in the UI or API creates one yet — the section will always read "No contacts yet."
+- **No desktop shell** — the README mentions a possible .NET MAUI Blazor Hybrid wrapper; it
+  doesn't exist yet. Praedora runs as a web app today.
+- **Single-user, no auth** — there's no login; anyone who can reach the API can use it. This is a
+  deliberate local-trust posture (see the CORS comment in `Praedora.Api/Program.cs`), not an
+  oversight, but it means you shouldn't expose the API to an untrusted network.
 
-- **Gmail sync** — `GmailEmailProvider` throws `NotImplementedException`; the background
-  `EmailSyncWorker` runs but does nothing every cycle. Setting the `GMAIL_OAUTH_*` env vars has no
-  effect today.
-- **Email classification** — `ClaudeClassifier` is a stub for the same reason.
-- **Review queue** — the `ReviewQueuePanel` page and `/api/review-queue` endpoints exist but
-  return 501 / do nothing; there's nothing to review until Gmail sync exists.
-- **Database-backed Log Viewer** — `ILogSink`/`DatabaseLogSink` also stub out; use the Serilog
-  file sink under `logs/` for diagnostics in the meantime.
-- **Postgres / SQL Server / Azure deployment** — Sqlite and local hosting only for now.
+## File Version
+
+2026.09.04
